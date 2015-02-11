@@ -43,6 +43,10 @@ printTrailingCharacter(){
 		printf '%s' $character
 	    let COUNTER=COUNTER+1 
 	done
+	echo ""
+	# add two blank line
+	# echo -en '\n'
+	# printf "\n\n"
 }
 
 createMarkdownHeading(){
@@ -54,27 +58,23 @@ createMarkdownHeading(){
 	1) 
 		# Heading I		
 		printf "$headingTitle"
-		printf "\n"
-		printTrailingCharacter '='
-		# add two blank line
 		echo ""
-		printf "\n\n"
+		printTrailingCharacter '='
 		;;
 	2) 
 		# Heading II		
+		printf "##"
 		printf "$headingTitle"
-		printf "\n"
-		printTrailingCharacter '-'
-		# add two blank line
 		echo ""
+		# add two blank line
 		printf "\n\n"
-		
-		;; 
+		;;
 	3) 
 		# Heading III		
 		printf "###"
 		printf "$headingTitle"
 		echo ""
+		# add two blank line
 		printf "\n\n"
 		;;		
 	4) 
@@ -82,6 +82,7 @@ createMarkdownHeading(){
 		printf "####"
 		printf "$headingTitle"
 		echo ""
+		# add two blank line
 		printf "\n\n"
 		;; 
 	*) 
@@ -96,7 +97,7 @@ createMarkdownHeading(){
 function project_view() {
     # Show projects in alphabetical order and todo items in priority order
 
-    echo $(createMarkdownHeading 1 "Projects" )
+	createMarkdownHeading 1 "Projects"
     echo ""
 
     # Find all projects and sort
@@ -109,7 +110,8 @@ function project_view() {
         PROJECT_LIST=$(_list "$TODO_FILE" "+$project\b" "$term" | sed 's/\(^+\|\ *+\)[a-zA-Z0-9\{._\-\}]*\ */ /g' | grep -v -e "$term/[a-z]*")
         if [[ -n "${PROJECT_LIST}" ]]; then
                    
-            echo $(createMarkdownHeading 2 " $project" )           
+            echo $(createMarkdownHeading 2 " $project" )   
+            echo ""
             echo "${PROJECT_LIST}"
             echo ""
             
