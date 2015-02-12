@@ -7,6 +7,7 @@
 
 # Stop Verbose lines, thanks to Mark Harrison
 TODOTXT_VERBOSE=0
+TODOTXT_PLAIN=0
 
 # Get action
 action=$1
@@ -100,14 +101,16 @@ function project_view() {
 	createMarkdownHeading 1 "Projects"
     echo ""
 
-    # Find all projects and sort
-    PROJECTS=$(grep -o '[^  ]*+[^  ]\+' "$TODO_FILE" | grep '^+' | sort -u | sed 's/^+//g')
+    # Find all projects and sort    
+    PROJECTS=$(grep -o '[^  ]*+[^  ]\+' "$TODO_FILE" | grep '^+' | sort -u | sed 's/^+//g')		
 
     # For each project show header and the list of todo items
     for project in $PROJECTS; do
-        # Use core _list function, does numbering and colouring for us
-        # grep -e "$term$"
-        PROJECT_LIST=$(_list "$TODO_FILE" "+$project\b" "$term" | sed 's/\(^+\|\ *+\)[a-zA-Z0-9\{._\-\}]*\ */ /g' | grep -v -e "$term/[a-z]*")
+    
+		# Thanks : http://backreference.org/2009/12/09/using-shell-variables-in-sed/		
+		safe_replacement=$(printf '%s\n' "$project" | sed 's/[\&/]/\\&/g')        
+	    PROJECT_LIST=$(grep -e "+${safe_replacement}\b" "$TODO_FILE" | grep -e "$term" | sed 's/\(^+\|\ *+\)[a-zA-Z0-9\{._\-\}]*\ */ /g' | sed -E "/${safe_replacement}\//d" )
+	    	 
         if [[ -n "${PROJECT_LIST}" ]]; then
                    
             echo $(createMarkdownHeading 2 " $project" )   
