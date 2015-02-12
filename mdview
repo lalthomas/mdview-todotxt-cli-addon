@@ -140,8 +140,15 @@ function context_view() {
 
     # For each context show header and the list of todo items
     for context in $CONTEXTS ; do
+    
+    	# Thanks : http://backreference.org/2009/12/09/using-shell-variables-in-sed/		
+		safe_replacement=$(printf '%s\n' "$context" | sed 's/[\&/]/\\&/g')       		
+    
+    	#PROJECT_LIST=$(grep -e "+${safe_replacement}\b" "$TODO_FILE" | grep -e "$term" | sed 's/\(^+\|\ *+\)[a-zA-Z0-9\{._\-\}]*\ */ /g'  )
+    
         # Use core _list function, does numbering and colouring for us
-        CONTEXT_LIST=$(_list "$TODO_FILE" "@$context\b" "$term" | sed 's/(^@|\ *@)[^[:cntrl:] ]\ */ /g')
+        CONTEXT_LIST=$(grep -e "@${safe_replacement}\b" "$TODO_FILE" | grep -e "$term" | sed 's/(^@|\ *@)[^[:cntrl:] ]\ */ /g' | sed -E "/${safe_replacement}\//d" )               
+        
         if [[ -n "${CONTEXT_LIST}" ]]; then        
 	        echo $(createMarkdownHeading 2 " $context" )
 	        echo ""
