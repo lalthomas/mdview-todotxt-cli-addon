@@ -131,7 +131,8 @@ function project_view() {
 
 function context_view() {
     # Show contexts in alphabetical order and todo items in priority order
-    echo "=====  Contexts  ====="
+    
+    createMarkdownHeading 1 "Contexts"    
     echo ""
 
     # Find all contexts and sort
@@ -141,8 +142,9 @@ function context_view() {
     for context in $CONTEXTS ; do
         # Use core _list function, does numbering and colouring for us
         CONTEXT_LIST=$(_list "$TODO_FILE" "@$context\b" "$term" | sed 's/(^@|\ *@)[^[:cntrl:] ]\ */ /g')
-        if [[ -n "${CONTEXT_LIST}" ]]; then
-            echo "---  $context  ---"
+        if [[ -n "${CONTEXT_LIST}" ]]; then        
+	        echo $(createMarkdownHeading 2 " $context" )
+	        echo ""
             echo "${CONTEXT_LIST}"
             echo ""
         fi
