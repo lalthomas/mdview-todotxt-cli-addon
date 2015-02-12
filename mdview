@@ -1,0 +1,185 @@
+#!/bin/bash
+# Author :Lal Thomas, http://lalamboori.blogspot.com
+# License: GPL3, http://www.gnu.org/copyleft/gpl.html
+# Credit : Inspired by and based on Mark Wu view add-on. 
+# 		   The original one is inspired by and based on Paul Mansfield's projectview, 
+#		   http://github.com/the1ts/todo.txt-plugins/blob/master/README.projects
+
+# Stop Verbose lines, thanks to Mark Harrison
+TODOTXT_VERBOSE=0
+TODOTXT_PLAIN=0
+
+# Get action
+action=$1
+shift
+
+# Get option
+option=$1;
+shift
+
+# Get rest of them
+term="$@"
+
+function usage() {
+    echo "  $(basename $0) [OPTION] [TERM]"
+    echo "    Show todo items containing TERM, grouped by OPTION, and displayed in"
+    echo "    priority order. If no TERM provided, displays entire todo.txt."
+    echo "    OPTION:"
+    echo "      project   : Show todo items group by project"
+    echo "      context   : Show todo items group by context"
+    echo "    Example:"
+    echo "      \$ todo.sh $(basename $0) project          # Show todo items grouped by project"
+    echo "      \$ todo.sh $(basename $0) project @context # Show todo items grouped by project and filtered by @context"
+    echo "      \$ todo.sh $(basename $0) context          # Show todo items grouped by context"
+    echo ""
+    exit
+}
+
+
+printTrailingCharacter(){
+ 	character=$1
+	# markdown heading label
+ 	COUNTER=0
+ 	while [  $COUNTER -lt $length ]; do
+		printf '%s' $character
+	    let COUNTER=COUNTER+1 
+	done
+	echo ""
+	# add two blank line
+	# echo -en '\n'
+	# printf "\n\n"
+}
+
+createMarkdownHeading(){
+  local headingType=$1
+  local headingTitle=$2
+  local length=${#headingTitle} 
+  
+  case $headingType in
+	1) 
+		# Heading I		
+		printf "$headingTitle"
+		echo ""
+		printTrailingCharacter '='
+		;;
+	2) 
+		# Heading II		
+		printf "##"
+		printf "$headingTitle"
+		echo ""
+		# add two blank line
+		printf "\n\n"
+		;;
+	3) 
+		# Heading III		
+		printf "###"
+		printf "$headingTitle"
+		echo ""
+		# add two blank line
+		printf "\n\n"
+		;;		
+	4) 
+		# Heading IV		
+		printf "####"
+		printf "$headingTitle"
+		echo ""
+		# add two blank line
+		printf "\n\n"
+		;; 
+	*) 
+		# Heading Unknown		
+		echo "unknown heading type" 
+		;; 
+  esac  
+  
+}
+
+
+function project_view() {
+    # Show projects in alphabetical order and todo items in priority order
+
+	createMarkdownHeading 1 "Projects"
+    echo ""
+
+    # Find all projects and sort    
+    PROJECTS=$(grep -o '[^  ]*+[^  ]\+' "$TODO_FILE" | grep '^+' | sort -u | sed 's/^+//g')		
+
+    # For each project show header and the list of todo items
+    for project in $PROJECTS; do
+    
+		# Thanks : http://backreference.org/2009/12/09/using-shell-variables-in-sed/		
+		safe_replacement=$(printf '%s\n' "$project" | sed 's/[\&/]/\\&/g')        
+	    PROJECT_LIST=$(grep -e "+${safe_replacement}\b" "$TODO_FILE" | grep -e "$term" | sed 's/\(^+\|\ *+\)[a-zA-Z0-9\{._\-\}]*\ */ /g' | sed -E "/${safe_replacement}\//d" )
+	    	 
+        if [[ -n "${PROJECT_LIST}" ]]; then
+                   
+            echo $(createMarkdownHeading 2 " $project" )   
+            echo ""
+            echo "${PROJECT_LIST}"
+            echo ""
+            
+        fi
+    done
+
+    # Show todo items not associated to a project
+    PROJECT_LIST=$(_list "$TODO_FILE" "$term" | grep -v "+\w")
+    if  [[ -n "${PROJECT_LIST}" ]]; then
+        echo "---  Items without project  ---"
+        echo "${PROJECT_LIST}"
+    fi
+}
+
+function context_view() {
+    # Show contexts in alphabetical order and todo items in priority order
+    
+    createMarkdownHeading 1 "Contexts"    
+    echo ""
+
+    # Find all contexts and sort
+    CONTEXTS=$(grep -o '[^  ]*@[^  ]\+' "$TODO_FILE" | grep '^@' | sort -u | sed 's/@//g')
+
+    # For each context show header and the list of todo items
+    for context in $CONTEXTS ; do
+    
+    	# Thanks : http://backreference.org/2009/12/09/using-shell-variables-in-sed/		
+		safe_replacement=$(printf '%s\n' "$context" | sed 's/[\&/]/\\&/g')       		
+    
+    	#PROJECT_LIST=$(grep -e "+${safe_replacement}\b" "$TODO_FILE" | grep -e "$term" | sed 's/\(^+\|\ *+\)[a-zA-Z0-9\{._\-\}]*\ */ /g'  )
+    
+        # Use core _list function, does numbering and colouring for us
+        CONTEXT_LIST=$(grep -e "@${safe_replacement}\b" "$TODO_FILE" | grep -e "$term" | sed 's/(^@|\ *@)[^[:cntrl:] ]\ */ /g' | sed -E "/${safe_replacement}\//d" )               
+        
+        if [[ -n "${CONTEXT_LIST}" ]]; then        
+	        echo $(createMarkdownHeading 2 " $context" )
+	        echo ""
+            echo "${CONTEXT_LIST}"
+            echo ""
+        fi
+    done
+
+    # Show todo items not associated to a context
+    CONTEXT_LIST=$(_list "$TODO_FILE" "$term" | grep -v "@[^ ]*\ *")
+    if [[ -n "${CONTEXT_LIST}" ]]; then
+        echo "---  Items without context  ---"
+        echo "${CONTEXT_LIST}"
+    fi
+}
+
+# Validate the input options
+re="^(help|project|context)$"
+if [[ "$option" =~ $re ]]; then
+    case $option in
+    'help')
+        usage
+        ;;
+    'project')
+        project_view
+        ;;
+    'context')
+        context_view
+        ;;
+    esac
+else
+    echo "Error: Unrecognized option \"$option\"."
+    echo "Try \"todo.sh view help\" to get more information."
+fi
