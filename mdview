@@ -160,7 +160,7 @@ function context_view() {
     # Show todo items not associated to a context
     CONTEXT_LIST=$(_list "$TODO_FILE" "$term" | grep -v "@[^ ]*\ *")
     if [[ -n "${CONTEXT_LIST}" ]]; then
-        echo "---  Items without context  ---"
+        echo "### Items without context"
         echo "${CONTEXT_LIST}"
     fi
 }
