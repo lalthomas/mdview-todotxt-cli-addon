@@ -124,7 +124,7 @@ function project_view() {
     # Show todo items not associated to a project
     PROJECT_LIST=$(_list "$TODO_FILE" "$term" | grep -v "+\w")
     if  [[ -n "${PROJECT_LIST}" ]]; then
-        echo "---  Items without project  ---"
+        echo "### Items without project"
         echo "${PROJECT_LIST}"
     fi
 }
