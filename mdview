@@ -109,7 +109,7 @@ function project_view() {
     
 		# Thanks : http://backreference.org/2009/12/09/using-shell-variables-in-sed/		
 		safe_replacement=$(printf '%s\n' "$project" | sed 's/[\&/]/\\&/g')        
-	    PROJECT_LIST=$(grep -e "+${safe_replacement}\b" "$TODO_FILE" | grep -e "$term" | sed 's/\(^+\|\ *+\)[a-zA-Z0-9\{._\-\}]*\ */ /g' | sed -E "/${safe_replacement}\//d" )
+	    PROJECT_LIST=$(grep -e "+${safe_replacement}\b" "$TODO_FILE" | grep -e "$term" | sed 's/\(^+\|\ *+\)[a-zA-Z0-9\{._\-\}]*\ */ /g' | sed -E "/${safe_replacement}\//d" | sed "s/^[0-9]\{4\}/\ \*\ &/g" )
 	    	 
         if [[ -n "${PROJECT_LIST}" ]]; then
                    
@@ -147,7 +147,7 @@ function context_view() {
     	#PROJECT_LIST=$(grep -e "+${safe_replacement}\b" "$TODO_FILE" | grep -e "$term" | sed 's/\(^+\|\ *+\)[a-zA-Z0-9\{._\-\}]*\ */ /g'  )
     
         # Use core _list function, does numbering and colouring for us
-        CONTEXT_LIST=$(grep -e "@${safe_replacement}\b" "$TODO_FILE" | grep -e "$term" | sed 's/(^@|\ *@)[^[:cntrl:] ]\ */ /g' | sed -E "/${safe_replacement}\//d" )               
+        CONTEXT_LIST=$(grep -e "@${safe_replacement}\b" "$TODO_FILE" | grep -e "$term" | sed 's/(^@|\ *@)[^[:cntrl:] ]\ */ /g' | sed -E "/${safe_replacement}\//d" | sed "s/^[0-9]\{4\}/\ \*\ &/g" )               
         
         if [[ -n "${CONTEXT_LIST}" ]]; then        
 	        echo $(createMarkdownHeading 2 " $context" )
