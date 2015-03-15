@@ -98,9 +98,6 @@ createMarkdownHeading(){
 function project_view() {
     # Show projects in alphabetical order and todo items in priority order
 
-	createMarkdownHeading 1 "Projects"
-    echo ""
-
     # Find all projects and sort    
     PROJECTS=$(grep -o '[^  ]*+[^  ]\+' "$TODO_FILE" | grep '^+' | sort -u | sed 's/^+//g')		
 
@@ -131,10 +128,7 @@ function project_view() {
 
 function context_view() {
     # Show contexts in alphabetical order and todo items in priority order
-    
-    createMarkdownHeading 1 "Contexts"    
-    echo ""
-
+      
     # Find all contexts and sort
     CONTEXTS=$(grep -o '[^  ]*@[^  ]\+' "$TODO_FILE" | grep '^@' | sort -u | sed 's/@//g')
 
