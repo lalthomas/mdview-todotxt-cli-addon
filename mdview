@@ -7,6 +7,7 @@
 
 # Stop Verbose lines, thanks to Mark Harrison
 TODOTXT_VERBOSE=0
+TODOTXT_PLAIN=0
 
 # Get action
 action=$1
@@ -34,48 +35,117 @@ function usage() {
     exit
 }
 
+
+printTrailingCharacter(){
+ 	character=$1
+	# markdown heading label
+ 	COUNTER=0
+ 	while [  $COUNTER -lt $length ]; do
+		printf '%s' $character
+	    let COUNTER=COUNTER+1 
+	done
+	echo ""
+	# add two blank line
+	# echo -en '\n'
+	# printf "\n\n"
+}
+
+createMarkdownHeading(){
+  local headingType=$1
+  local headingTitle=$2
+  local length=${#headingTitle} 
+  
+  case $headingType in
+	1) 
+		# Heading I		
+		printf "$headingTitle"
+		echo ""
+		printTrailingCharacter '='
+		;;
+	2) 
+		# Heading II		
+		printf "##"
+		printf "$headingTitle"
+		echo ""
+		# add two blank line
+		printf "\n\n"
+		;;
+	3) 
+		# Heading III		
+		printf "###"
+		printf "$headingTitle"
+		echo ""
+		# add two blank line
+		printf "\n\n"
+		;;		
+	4) 
+		# Heading IV		
+		printf "####"
+		printf "$headingTitle"
+		echo ""
+		# add two blank line
+		printf "\n\n"
+		;; 
+	*) 
+		# Heading Unknown		
+		echo "unknown heading type" 
+		;; 
+  esac  
+  
+}
+
+
 function project_view() {
     # Show projects in alphabetical order and todo items in priority order
-    echo "=====  Projects  ====="
-    echo ""
 
-    # Find all projects and sort
-    PROJECTS=$(grep -o '[^  ]*+[^  ]\+' "$TODO_FILE" | grep '^+' | sort -u | sed 's/^+//g')
+    # Find all projects and sort    
+    PROJECTS=$(grep -o '[^  ]*+[^  ]\+' "$TODO_FILE" | grep '^+' | sort -u | sed 's/^+//g')		
 
     # For each project show header and the list of todo items
     for project in $PROJECTS; do
-        # Use core _list function, does numbering and colouring for us
-        # grep -e "$term$"
-        PROJECT_LIST=$(_list "$TODO_FILE" "+$project\b" "$term" | sed 's/\(^+\|\ *+\)[a-zA-Z0-9\{._\-\}]*\ */ /g' | grep -v -e "$term/[a-z]*")
+    
+		# Thanks : http://backreference.org/2009/12/09/using-shell-variables-in-sed/		
+		safe_replacement=$(printf '%s\n' "$project" | sed 's/[\&/]/\\&/g')        
+	    PROJECT_LIST=$(grep -e "+${safe_replacement}\b" "$TODO_FILE" | grep -e "$term" | sed 's/\(^+\|\ *+\)[a-zA-Z0-9\{._\-\}]*\ */ /g' | sed -E "/${safe_replacement}\//d" | sed "s/^[0-9]\{4\}/\ \*\ &/g" )
+	    	 
         if [[ -n "${PROJECT_LIST}" ]]; then
-            echo "---  $project  ---"
+                   
+            echo $(createMarkdownHeading 2 " $project" )   
+            echo ""
             echo "${PROJECT_LIST}"
             echo ""
+            
         fi
     done
 
     # Show todo items not associated to a project
     PROJECT_LIST=$(_list "$TODO_FILE" "$term" | grep -v "+\w")
     if  [[ -n "${PROJECT_LIST}" ]]; then
-        echo "---  Items without project  ---"
+        echo "### Items without project"
         echo "${PROJECT_LIST}"
     fi
 }
 
 function context_view() {
     # Show contexts in alphabetical order and todo items in priority order
-    echo "=====  Contexts  ====="
-    echo ""
-
+      
     # Find all contexts and sort
     CONTEXTS=$(grep -o '[^  ]*@[^  ]\+' "$TODO_FILE" | grep '^@' | sort -u | sed 's/@//g')
 
     # For each context show header and the list of todo items
     for context in $CONTEXTS ; do
+    
+    	# Thanks : http://backreference.org/2009/12/09/using-shell-variables-in-sed/		
+		safe_replacement=$(printf '%s\n' "$context" | sed 's/[\&/]/\\&/g')       		
+    
+    	#PROJECT_LIST=$(grep -e "+${safe_replacement}\b" "$TODO_FILE" | grep -e "$term" | sed 's/\(^+\|\ *+\)[a-zA-Z0-9\{._\-\}]*\ */ /g'  )
+    
         # Use core _list function, does numbering and colouring for us
-        CONTEXT_LIST=$(_list "$TODO_FILE" "@$context\b" "$term" | sed 's/(^@|\ *@)[^[:cntrl:] ]\ */ /g')
-        if [[ -n "${CONTEXT_LIST}" ]]; then
-            echo "---  $context  ---"
+        CONTEXT_LIST=$(grep -e "@${safe_replacement}\b" "$TODO_FILE" | grep -e "$term" | sed 's/(^@|\ *@)[^[:cntrl:] ]\ */ /g' | sed -E "/${safe_replacement}\//d" | sed "s/^[0-9]\{4\}/\ \*\ &/g" )               
+        
+        if [[ -n "${CONTEXT_LIST}" ]]; then        
+	        echo $(createMarkdownHeading 2 " $context" )
+	        echo ""
             echo "${CONTEXT_LIST}"
             echo ""
         fi
@@ -84,7 +154,7 @@ function context_view() {
     # Show todo items not associated to a context
     CONTEXT_LIST=$(_list "$TODO_FILE" "$term" | grep -v "@[^ ]*\ *")
     if [[ -n "${CONTEXT_LIST}" ]]; then
-        echo "---  Items without context  ---"
+        echo "### Items without context"
         echo "${CONTEXT_LIST}"
     fi
 }
