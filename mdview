@@ -1,5 +1,6 @@
 #!/bin/bash
-# Author :Lal Thomas, http://lalamboori.blogspot.com
+# todo.txt add-on to view the todo file in markdown format
+# Copyright (c) Lal Thomas, http://lalamboori.blogspot.in
 # License: GPL3, http://www.gnu.org/copyleft/gpl.html
 # Credit : Inspired by and based on Mark Wu view add-on. 
 # 		   The original one is inspired by and based on Paul Mansfield's projectview, 
@@ -174,6 +175,6 @@ if [[ "$option" =~ $re ]]; then
         ;;
     esac
 else
-    echo "Error: Unrecognized option \"$option\"."
-    echo "Try \"todo.sh view help\" to get more information."
+    echo "Error: Unrecognised option \"$option\"."
+    echo "Try \"todo.sh $(basename $0) help\" to get more information."
 fi
